@@ -72,6 +72,21 @@ static void rename_file(char *filename, char *new_basename, char *path)
         if (rename(filename, new_filename)) goto error;
     }
 
+    // Log the rename operation to pkgrename.txt in the same folder
+    {
+        char log_path[PATH_MAX + 32];
+        snprintf(log_path, sizeof(log_path), "%spkgrename.txt", path);
+        FILE *log_file = fopen(log_path, "a");
+        if (log_file) {
+            // Only log the base names, not full paths
+            char *orig_base = strrchr(filename, DIR_SEPARATOR);
+            orig_base = orig_base ? orig_base + 1 : filename;
+            fprintf(log_file, "%s -> %s\n", orig_base, new_basename);
+            fclose(log_file);
+        }
+        // If log can't be written, silently ignore
+    }
+
     return;
 
 error:
