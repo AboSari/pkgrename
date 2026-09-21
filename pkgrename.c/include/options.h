@@ -12,6 +12,7 @@ extern int option_no_to_all;
 extern char option_language_number[3];
 extern int option_leading_zeros;
 extern int option_online;
+extern int option_preview;
 extern int option_query;
 extern int option_recursive;
 extern char *option_tag_separator;

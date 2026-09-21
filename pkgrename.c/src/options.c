@@ -18,6 +18,7 @@ char option_language_number[3];
 int option_leading_zeros;
 int option_online;
 int option_override_tags;
+int option_preview;
 int option_query;
 int option_recursive;
 char *option_tag_separator;
@@ -30,6 +31,7 @@ enum long_only_options {
     OPT_NO_PLACEHOLDER,
     OPT_OVERRIDE_TAGS,
     OPT_PLACEHOLDER,
+    OPT_PREVIEW,
     OPT_PRINT_LANGS,
     OPT_PRINT_TAGS,
     OPT_SET_BACKPORT,
@@ -57,6 +59,7 @@ static struct option opts[] = {
     { OPT_OVERRIDE_TAGS,  "override-tags",  NULL,      "Make changelog release tags take precedence over existing file name tags." },
     { 'p',                "pattern",        "PATTERN", "Set the file name pattern to string PATTERN." },
     { OPT_PLACEHOLDER,    "placeholder",    "X",       "Set the placeholder character to X." },
+    { OPT_PREVIEW,        "preview",        NULL,      "Preview renames only: print each folder and its files with original => new names, without actually renaming anything." },
     { OPT_PRINT_LANGS,    "print-languages", NULL,     "Print available language codes." },
     { OPT_PRINT_TAGS,     "print-tags",     NULL,      "Print all built-in release tags." },
     { 'q',                "query",          NULL,      "For scripts/tools: print file name suggestions, one per line, without renaming the files. A successful query returns exit code 0." },
@@ -421,6 +424,10 @@ language_found:
                 break;
             case OPT_PLACEHOLDER:
                 placeholder_char = optarg[0];
+                break;
+            case OPT_PREVIEW:
+                option_preview = 1;
+                option_no_to_all = 1; // Safety: never rename in preview mode.
                 break;
             case OPT_PRINT_LANGS:
                 optf_print_languages();

@@ -179,7 +179,7 @@ static struct scan *pkgrename(struct scan *scan)
         option_force = option_force_backup;
     }
 
-    if (option_query == 0 && option_compact == 0) {
+    if (option_query == 0 && option_compact == 0 && option_preview == 0) {
         if (first_run == 1)
             first_run = 0;
         else
@@ -242,7 +242,7 @@ static struct scan *pkgrename(struct scan *scan)
     }
 
     // Print directory if it's different (early).
-    if (multiple_directories && option_compact == 0)
+    if (multiple_directories && option_compact == 0 && option_preview == 0)
         print_dir_change(path);
 
     // Create a lowercase copy of "basename".
@@ -251,7 +251,7 @@ static struct scan *pkgrename(struct scan *scan)
         lowercase_basename[i] = tolower(lowercase_basename[i]);
 
     // Print current basename (early).
-    if (option_query == 0 && option_compact == 0)
+    if (option_query == 0 && option_compact == 0 && option_preview == 0)
         printf("   \"%s\"\n", basename);
 
     // Load PKG data.
@@ -596,6 +596,25 @@ title_found:
             printf("%s\n", new_basename);
             return NULL;
         }
+
+        // Preview mode: print folder + original->new mapping, then skip.
+        if (option_preview == 1) {
+            // Print the folder once per directory change.
+            static char preview_last_path[PATH_MAX];
+            if (strcmp(preview_last_path, path) != 0) {
+                strncpy(preview_last_path, path, PATH_MAX - 1);
+                preview_last_path[PATH_MAX - 1] = '\0';
+                set_color(GRAY, stdout);
+                printf("\nFolder: %s\n", path);
+                set_color(RESET, stdout);
+            }
+            printf("  %s\n", basename);
+            set_color(BRIGHT_YELLOW, stdout);
+            printf("  => %s\n", new_basename);
+            set_color(RESET, stdout);
+            return NULL;
+        }
+
         printf("=> \"%s\"", new_basename);
 
         // Print number of special characters.
