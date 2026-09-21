@@ -64,8 +64,38 @@ static void rename_file(char *filename, char *new_basename, char *path)
             if (rename(filename, temp)) goto error;
             if (rename(temp, new_filename)) goto error;
         } else {
-            fprintf(stderr, "File already exists: \"%s\".\n", new_filename);
-            exit(EXIT_FAILURE);
+            // Auto-append a numeric counter before the extension to avoid collision.
+            // Strip the ".pkg" extension from new_basename, then try "(2)", "(3)", ...
+            char base_no_ext[MAX_FILENAME_LEN];
+            strncpy(base_no_ext, new_basename, sizeof(base_no_ext) - 1);
+            base_no_ext[sizeof(base_no_ext) - 1] = '\0';
+            // Find the last '.'
+            char *dot = strrchr(base_no_ext, '.');
+            char ext[MAX_FILENAME_LEN] = "";
+            if (dot) {
+                strncpy(ext, dot, sizeof(ext) - 1);
+                ext[sizeof(ext) - 1] = '\0';
+                *dot = '\0';
+            }
+            int counter = 2;
+            char numbered_basename[MAX_FILENAME_LEN + 32];
+            do {
+                snprintf(numbered_basename, sizeof(numbered_basename),
+                    "%s (%d)%s", base_no_ext, counter, ext);
+                snprintf(new_filename, sizeof(new_filename), "%s%s", path, numbered_basename);
+                file = fopen(new_filename, "rb");
+                if (file != NULL) {
+                    fclose(file);
+                    counter++;
+                } else {
+                    break;
+                }
+            } while (1);
+            // Update new_basename to the numbered version for the log.
+            strncpy(new_basename, numbered_basename, MAX_FILENAME_LEN - 1);
+            new_basename[MAX_FILENAME_LEN - 1] = '\0';
+            fprintf(stderr, "File already exists; renaming to \"%s\".\n", new_filename);
+            if (rename(filename, new_filename)) goto error;
         }
     // File does not exist yet.
     } else {
